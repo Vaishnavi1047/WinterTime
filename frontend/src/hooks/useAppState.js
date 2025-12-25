@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 
 const INITIAL_CHART_DATA = [
@@ -24,13 +24,15 @@ const INITIAL_LISTINGS = [
 export const useAppState = () => {
   const [user, setUser] = useState(authService.getUser());
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [news, setNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(false);
   const [logs, setLogs] = useState(null);
   const [chartData, setChartData] = useState(INITIAL_CHART_DATA);
   const [listings, setListings] = useState(INITIAL_LISTINGS);
 
-  // Auth Handlers
+  // --- Auth Handlers ---
   const login = (userData) => {
-    authService.setSession("mock_jwt_token", userData);
+    // Note: userData from backend should already contain the token
     setUser(userData);
   };
 
@@ -41,11 +43,13 @@ export const useAppState = () => {
   };
 
   const updateUser = (updatedUser) => {
-    authService.setSession(authService.getToken(), updatedUser);
+    // When updating user, we keep the existing token
+    const token = authService.getToken();
+    authService.setSession(token, updatedUser);
     setUser(updatedUser);
   };
 
-  // Business Logic Handlers
+  // --- Business Logic Handlers ---
   const addCalculation = (newLog) => {
     setLogs(newLog);
     setChartData(prev => prev.map(d => 
@@ -64,8 +68,48 @@ export const useAppState = () => {
     setListings(prev => prev.map(l => l.id === id ? {...l, status: 'SOLD'} : l));
   };
 
+  // --- Market News Fetching ---
+  const fetchMarketNews = async () => {
+    setNewsLoading(true);
+    try {
+      // Logic: Use .env variable, or fallback to localhost:5000 if undefined
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/news/market-news`);
+      
+      if (!response.ok) throw new Error("Backend unreachable");
+
+      const data = await response.json();
+      setNews(data);
+    } catch (error) {
+      console.error("News Fetch Error:", error);
+      setNews([]); // Clear news on error to avoid showing old/broken data
+    } finally {
+      setNewsLoading(false);
+    }
+  };
+
+  // Trigger news fetch only when the News tab is opened
+  useEffect(() => {
+    if (activeTab === 'news') {
+      fetchMarketNews();
+    }
+  }, [activeTab]);
+
   return {
-    user, activeTab, setActiveTab, logs, chartData, listings,
-    login, logout, updateUser, addCalculation, addListing, updateListingStatus, buyListing
+    user, 
+    activeTab, 
+    setActiveTab, 
+    logs, 
+    chartData, 
+    listings,
+    login, 
+    logout, 
+    updateUser, 
+    addCalculation, 
+    addListing, 
+    updateListingStatus, 
+    buyListing, 
+    news, 
+    newsLoading
   };
 };

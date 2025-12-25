@@ -14,10 +14,10 @@ app.use(express.json());
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const emissionsRoutes = require("./routes/emissionsRoutes");
-
+const newsRoutes = require('./routes/newsRoutes');
 app.use("/api/auth", authRoutes);
 app.use("/api/emissions", emissionsRoutes);
-
+app.use('/api/news', newsRoutes);
 app.get("/", (req, res) => {
   res.send("BEE Carbon Market API Running 🚀");
 });
