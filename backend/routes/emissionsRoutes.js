@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { createEmissionLog } = require("../controllers/emissionsController");
+const auth = require("../middleware/auth");
+const { createEmissionLog, getEmissionsHistory } = require("../controllers/emissionsController");
 
-router.post("/log", createEmissionLog);
+router.post("/log", auth, createEmissionLog);
+router.get("/history", auth, getEmissionsHistory);
 
 module.exports = router;
