@@ -5,19 +5,27 @@ require("dotenv").config();
 
 const app = express();
 
-app.use(cors());
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL
+}));
 app.use(express.json());
 
+// Routes
+const authRoutes = require("./routes/authRoutes");
+const emissionsRoutes = require("./routes/emissionsRoutes");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/emissions", emissionsRoutes);
+
 app.get("/", (req, res) => {
-  res.send("Carbon Trading Backend Running 🚀");
+  res.send("BEE Carbon Market API Running 🚀");
 });
 
+// Database Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ MongoDB Error:", err));
-
-const emissionsRoutes = require("./routes/emissionsRoutes");
-app.use("/api/emissions", emissionsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
