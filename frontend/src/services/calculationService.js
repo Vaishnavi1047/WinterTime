@@ -1,9 +1,3 @@
-/**
- * India Grid Factors (Approximate for Demo):
- * - Grid Electricity: ~0.71 kgCO2e / kWh
- * - Thermal Coal: ~2.42 kgCO2e / kg
- * - Diesel: ~2.68 kgCO2e / Liter
- */
 
 const EMISSION_FACTORS = {
   GRID_ELECTRICITY: 0.71,

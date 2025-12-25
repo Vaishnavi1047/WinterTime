@@ -63,7 +63,7 @@ function App() {
             <Dashboard
               user={state.user}
               data={state.chartData}
-              recentLog={state.logs}
+              recentLog={state.recentLog}
             />
           )}
           {state.activeTab === "calculator" && (

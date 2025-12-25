@@ -1,7 +1,6 @@
 import React from 'react';
 
 const MarketNews = ({ news, loading }) => {
-  // Helper to identify high-authority Indian business sources
   const isOfficialSource = (sourceName) => {
     const verified = [
       'The Economic Times', 
@@ -92,7 +91,7 @@ const MarketNews = ({ news, loading }) => {
               
               <div className="flex flex-col md:flex-row gap-6">
                 {article.urlToImage && (
-                  <div className="w-full md:w-48 h-28 flex-shrink-0 overflow-hidden rounded-xl border border-slate-700">
+                  <div className="w-full md:w-48 h-28 shrink-0 overflow-hidden rounded-xl border border-slate-700">
                     <img 
                       src={article.urlToImage} 
                       alt="Market Intel" 
