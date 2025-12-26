@@ -76,7 +76,7 @@ const Dashboard = ({ data, recentLog, user }) => {
 
       {/* Charts & Breakdown Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-lg p-5 h-[400px] flex flex-col">
+        <div className="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-lg p-5 h-100 flex flex-col">
           <h3 className="text-slate-200 font-semibold mb-6">Emissions Trajectory</h3>
           <div className="flex-1 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -141,7 +141,7 @@ const Dashboard = ({ data, recentLog, user }) => {
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-[250px] flex flex-col items-center justify-center text-slate-500 text-center p-4">
+            <div className="h-full min-h-62.5 flex flex-col items-center justify-center text-slate-500 text-center p-4">
                <p className="text-sm italic">No data available.</p>
             </div>
           )}
