@@ -7,9 +7,10 @@ import CarbonAdvisor from './components/CarbonAdvisor';
 import AuthPage from './components/AuthPage';
 import AccountSettings from './components/AccountSettings';
 import TradingPortal from './components/TradingPortal';
-import { IconChart, IconCalculator, IconRobot, IconSettings, IconTrading } from './components/Icons';
+import { IconChart, IconCalculator, IconRobot, IconSettings, IconTrading, IconCheckCircle } from './components/Icons';
+import ApprovalsPanel from './components/ApprovalsPanel';
 
-const navItems = [
+const navItemsBase = [
   { id: 'dashboard', label: 'Dashboard', icon: IconChart },
   { id: 'trading', label: 'Trading Portal', icon: IconTrading },
   { id: 'calculator', label: 'Calculator Engine', icon: IconCalculator },
@@ -17,11 +18,24 @@ const navItems = [
   { id: 'settings', label: 'Account Settings', icon: IconSettings },
 ];
 
+function getNavItems(user) {
+  if (!user) return navItemsBase;
+  if (["ADMIN", "VERIFIER"].includes(user.role)) {
+    return [
+      ...navItemsBase.slice(0, 1),
+      { id: 'approvals', label: 'Approvals', icon: IconCheckCircle },
+      ...navItemsBase.slice(1)
+    ];
+  }
+  return navItemsBase;
+}
+
 function App() {
   const state = useAppState();
 
-  if (!state.user) return <AuthPage onLogin={state.login} />;
+  if (!state.user) return <AuthPage onLogin={(user, token) => state.login(user, token)} />;
 
+  const navItems = getNavItems(state.user);
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       <Header user={state.user} />
@@ -46,6 +60,7 @@ function App() {
 
         <main className="flex-1 overflow-y-auto z-10 p-6">
           {state.activeTab === 'dashboard' && <Dashboard user={state.user} data={state.chartData} recentLog={state.logs} />}
+          {state.activeTab === 'approvals' && <ApprovalsPanel />}
           {state.activeTab === 'calculator' && <Calculator onCalculate={state.addCalculation} />}
           {state.activeTab === 'advisor' && <CarbonAdvisor user={state.user} recentLog={state.logs} />}
           {state.activeTab === 'trading' && (

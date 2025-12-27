@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
 const CreditListingSchema = new mongoose.Schema({
-  developerId: mongoose.Schema.Types.ObjectId,
+  developerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   credits: Number,
   pricePerCredit: Number,
+  projectType: { type: String },
   status: {
     type: String,
     enum: ["PENDING", "APPROVED", "REJECTED"],
