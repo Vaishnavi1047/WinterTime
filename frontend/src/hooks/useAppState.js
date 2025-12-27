@@ -29,8 +29,8 @@ export const useAppState = () => {
   const [listings, setListings] = useState(INITIAL_LISTINGS);
 
   // Auth Handlers
-  const login = (userData) => {
-    authService.setSession("mock_jwt_token", userData);
+  const login = (userData, token) => {
+    authService.setSession(token, userData);
     setUser(userData);
   };
 

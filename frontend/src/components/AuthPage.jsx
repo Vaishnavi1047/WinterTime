@@ -39,9 +39,8 @@ const AuthPage = ({ onLogin }) => {
 
       // 1. Save JWT and User data to LocalStorage via our service
       authService.setSession(data.token, data.user);
-      
-      // 2. Lift state to App.jsx to unlock the dashboard
-      onLogin(data.user);
+      // 2. Lift state to App.jsx to unlock the dashboard, pass both user and token
+      onLogin(data.user, data.token);
 
     } catch (err) {
       setError(err.message);
