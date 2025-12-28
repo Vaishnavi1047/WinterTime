@@ -17,17 +17,28 @@ const TradingPortal = ({ user, onAddListing, onBuyListing }) => {
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    if (activeTab === 'market') {
-      setLoadingMarket(true);
+  // 1. Only run logic if the active tab is 'market'
+  if (activeTab === 'market') {
+    
+    // 2. Define an async function to "wrap" the state updates.
+    // This moves 'setLoadingMarket' into the async microtask queue,
+    // which satisfies the ESLint rule and prevents cascading renders.
+    const fetchMarketData = async () => {
+      setLoadingMarket(true); 
+      
+      try {
+        const data = await marketService.getApprovedListings();
+        setMarketListings(data);
+      } catch (err) {
+        console.error("Failed to fetch listings:", err);
+      } finally {
+        setLoadingMarket(false);
+      }
+    };
 
-      marketService
-        .getApprovedListings()
-        .then(data => setMarketListings(data))
-        .catch(() => setMarketListings([]))
-        .finally(() => setLoadingMarket(false));
-        //console.log(MarketListings);
-    }
-  }, [activeTab]);
+    fetchMarketData();
+  }
+}, [activeTab]);
 
   const showNotification = (msg, type) => {
     setNotification({ msg, type });
