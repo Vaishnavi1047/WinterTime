@@ -110,7 +110,9 @@ export const useAppState = () => {
   }, [activeTab, fetchMarketNews]);
 
 
-  const login = (userData) => {
+  // Auth Handlers
+  const login = (userData, token) => {
+    authService.setSession(token, userData);
     setUser(userData);
   };
 
