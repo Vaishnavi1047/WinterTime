@@ -1,26 +1,26 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_API_KEY);
-
 export const generateAdvisorResponse = async (user, recentLog, userMessage) => {
-  if (!import.meta.env.VITE_GOOGLE_API_KEY) {
-    return "AI is offline. Please add your Gemini API key.";
-  }
-
   try {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: "You are the CREDITCarbon Advisor assistant."
+    const response = await fetch("http://localhost:5000/api/advisor", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: userMessage,
+        userId: user._id // send userId directly
+      })
     });
 
-    const context = `User: ${user.companyName}, Sector: ${user.sector}`;
-    const result = await model.generateContent(
-      `Context: ${context}\n\nQuestion: ${userMessage}`
-    );
+    if (!response.ok) {
+      const errData = await response.json();
+      console.error("Advisor API error:", errData);
+      return "I’m having trouble generating a response. Please try again later.";
+    }
 
-    return result.response.text();
+    const data = await response.json();
+    return data.reply;
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "I'm having trouble connecting right now.";
+    console.error("Network or API error:", error);
+    return "I’m having trouble connecting to the advisor right now.";
   }
 };
