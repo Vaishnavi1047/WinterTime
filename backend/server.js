@@ -16,12 +16,12 @@ const authRoutes = require("./routes/authRoutes");
 const emissionsRoutes = require("./routes/emissionsRoutes");
 const sellRoutes = require("./routes/sellRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
+const newsRoutes = require('./routes/newsRoutes');
 app.use("/api/auth", authRoutes);
 app.use("/api/emissions", emissionsRoutes);
 app.use("/api/sell", sellRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use('/api/news', newsRoutes);
 app.get("/", (req, res) => {
   res.send("BEE Carbon Market API Running 🚀");
 });

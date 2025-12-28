@@ -1,9 +1,3 @@
-/**
- * India Grid Factors (Approximate for Demo):
- * - Grid Electricity: ~0.71 kgCO2e / kWh
- * - Thermal Coal: ~2.42 kgCO2e / kg
- * - Diesel: ~2.68 kgCO2e / Liter
- */
 
 const EMISSION_FACTORS = {
   GRID_ELECTRICITY: 0.71,
@@ -29,19 +23,22 @@ export const calculateTotalEmissions = (inputs) => {
   };
 };
 
+
 export const getComplianceStatus = (actual, target) => {
-  const diff = target - actual;
+  const diff = target - actual; 
+  const absoluteDiff = Math.abs(diff);
+
   if (diff >= 0) {
-    return { 
-      status: 'COMPLIANT', 
-      creditBalance: diff, 
-      message: `You are under the limit by ${diff.toFixed(2)} tCO2e. These can be traded as E-Certs.` 
+    return {
+      status: 'COMPLIANT',
+      creditBalance: diff,
+      message: `You are under the limit by ${diff.toFixed(2)} tCO2e. You have earned ${diff.toFixed(2)} CCCs.`
     };
   } else {
-    return { 
-      status: 'NON_COMPLIANT', 
-      deficit: Math.abs(diff), 
-      message: `You are exceeding targets by ${Math.abs(diff).toFixed(2)} tCO2e. You must purchase ESCerts.` 
+    return {
+      status: 'NON_COMPLIANT',
+      deficit: absoluteDiff,
+      message: `You are exceeding targets by ${absoluteDiff.toFixed(2)} tCO2e. You must purchase ${absoluteDiff.toFixed(2)} CCCs.`
     };
   }
 };
