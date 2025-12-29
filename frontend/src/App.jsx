@@ -22,12 +22,12 @@ const navItemsBase = [
 
 function getNavItems(user) {
   if (!user) return navItemsBase;
-  if (["ADMIN", "VERIFIER"].includes(user.role)) {
-    return [
-      ...navItemsBase.slice(0, 1),
-      { id: 'approvals', label: 'Approvals', icon: IconCheckCircle },
-      ...navItemsBase.slice(1)
-    ];
+  if (['ADMIN', 'VERIFIER'].includes(user.role)) {
+    return navItemsBase.map(item =>
+      item.id === 'trading'
+        ? { id: 'approvals', label: 'Approvals', icon: IconCheckCircle }
+        : item
+    );
   }
   return navItemsBase;
 }
