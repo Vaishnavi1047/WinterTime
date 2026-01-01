@@ -1,13 +1,17 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const OpenAI = require("openai");
 const EmissionsLog = require("../models/EmissionsLog");
 const User = require("../models/User");
+const rateLimit = require("express-rate-limit");
 
 const router = express.Router();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Build context from user's emissions log
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+//Building a overview of user's emissions data for context
 function buildEmissionsContext(user, log) {
   if (!log) {
     return `
@@ -35,8 +39,12 @@ Gap: ${gap > 0 ? `${gap} tCO2e above target` : "Within target"}
 `;
 }
 
-// Advisor route
-router.post("/advisor", async (req, res) => {
+const advisorLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+});
+
+router.post("/advisor", advisorLimiter, async (req, res) => {
   try {
     const { message, userId } = req.body;
 
@@ -75,15 +83,23 @@ Respond clearly with:
 3️⃣ Expected qualitative impact
 `;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(prompt);
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // cheap & fast
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4,
+    });
 
-    const reply = result?.response?.text() || "I couldn’t generate a response at the moment.";
+    const reply =
+      completion.choices[0].message.content ||
+      "I couldn’t generate a response at the moment.";
 
-    res.status(200).json({ reply });
+    return res.status(200).json({ reply });
   } catch (error) {
     console.error("❌ Carbon Advisor error:", error);
-    res.status(500).json({ error: "Internal Server Error", details: error.message });
+    return res.status(500).json({
+      error: "Internal Server Error",
+      details: error.message,
+    });
   }
 });
 
