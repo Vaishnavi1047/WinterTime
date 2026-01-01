@@ -1,17 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const EmissionsLog = require("../models/EmissionsLog");
 const User = require("../models/User");
 const rateLimit = require("express-rate-limit");
-
 const router = express.Router();
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-//Building a overview of user's emissions data for context
+// Build context from user's emissions log
 function buildEmissionsContext(user, log) {
   if (!log) {
     return `
@@ -27,24 +23,26 @@ No emissions data submitted yet.
 Company: ${user.companyName}
 Sector: ${user.sector}
 Compliance Target 2025: ${user.complianceTarget2025} tCO2e
-
 Latest Emissions (${log.year}):
 - Electricity Grid: ${log.inputs.electricityGrid}
 - Coal Thermal: ${log.inputs.coalThermal}
 - Diesel: ${log.inputs.diesel}
-
 Total Emissions: ${log.calculatedEmissions} tCO2e
 Target Emissions: ${log.targetEmissions} tCO2e
 Gap: ${gap > 0 ? `${gap} tCO2e above target` : "Within target"}
 `;
 }
 
-const advisorLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 5,
+const advisorLimiter=rateLimit({
+  windowMs:15*60*1000, //15 minutes
+  max:20, //limit each IP to 20 requests per windowMs
+  message:{
+    error:"Too many requests from this IP, please try again after 15 minutes."
+  }
 });
 
-router.post("/advisor", advisorLimiter, async (req, res) => {
+// Advisor route
+router.post("/advisor",advisorLimiter, async (req, res) => {
   try {
     const { message, userId } = req.body;
 
@@ -63,7 +61,6 @@ router.post("/advisor", advisorLimiter, async (req, res) => {
 
     const prompt = `
 You are an expert AI Carbon Advisor for Indian industries.
-
 Your role:
 - Analyze emissions data
 - Identify major emission drivers
@@ -71,35 +68,24 @@ Your role:
 - Tailor advice strictly to the user's sector
 - Focus on electricity, coal, and diesel usage
 - Avoid generic sustainability advice
-
 ${buildEmissionsContext(user, recentLog)}
-
 User Question:
 "${message}"
-
 Respond clearly with:
 1️⃣ Main emission drivers
 2️⃣ 2–3 actionable reduction steps
 3️⃣ Expected qualitative impact
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // cheap & fast
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
 
-    const reply =
-      completion.choices[0].message.content ||
-      "I couldn’t generate a response at the moment.";
+    const reply = result?.response?.text() || "I couldn’t generate a response at the moment.";
 
-    return res.status(200).json({ reply });
+    res.status(200).json({ reply });
   } catch (error) {
     console.error("❌ Carbon Advisor error:", error);
-    return res.status(500).json({
-      error: "Internal Server Error",
-      details: error.message,
-    });
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
   }
 });
 
