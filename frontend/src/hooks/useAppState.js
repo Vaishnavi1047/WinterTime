@@ -63,7 +63,7 @@ export const useAppState = () => {
       });
       const data = await response.json();
       
-      console.log("DB DATA RECEIVED:", data);
+      //console.log("DB DATA RECEIVED:", data);
 
       if (data && data.length > 0) {
         const latest = data[0];
@@ -153,6 +153,13 @@ export const useAppState = () => {
 
   const buyListing = (id) => {
     setListings(prev => prev.map(l => l.id === id ? {...l, status: 'SOLD'} : l));
+    if (latestLog) {
+      const updatedLog = { ...latestLog, calculatedEmissions: data.updatedEmissions };
+      setLatestLog(updatedLog);
+
+      setChartData(prev => prev.map(d => d.year === '2025' ? { ...d, actual: data.updatedEmissions } : d));
+    }
+
   };
 
   return {

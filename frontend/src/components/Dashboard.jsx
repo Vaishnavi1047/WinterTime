@@ -1,7 +1,8 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts';
 import { getComplianceStatus } from '../services/calculationService';
-
+import { useEffect, useState } from 'react';
+import { authService } from '../services/authService';
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -19,14 +20,52 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const Dashboard = ({ data, recentLog, user }) => {
- 
+  const [backendActual, setBackendActual] = useState(null);
+  useEffect(() => {
+    const fetchCurrentEmission = async () => {
+      try {
+        const token = authService.getToken();
+        //console.log('Using token:', token);
+        const res = await fetch(
+          'http://localhost:5000/api/emissions/current?year=2025',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || 'Request failed');
+        }
+
+        const data = await res.json();
+        //console.log('Current Emissions Data from Backend:', data);
+        setBackendActual(data.calculatedEmissions);
+
+      } catch (err) {
+        console.error('Failed to fetch current emissions:', err.message);
+      }
+    };
+
+    fetchCurrentEmission();
+  }, []);
+
+
   const currentYearData = data?.find(d => d.year == '2025');
-  
-  const actual = recentLog?.calculatedEmissions || currentYearData?.actual || 0;
+
+  //const actual = recentLog?.calculatedEmissions || currentYearData?.actual || 0;
+  const actual =
+    backendActual ??
+    recentLog?.calculatedEmissions ??
+    currentYearData?.actual ??
+    0;
 
   const target = user?.complianceTarget2025 || recentLog?.targetEmissions || currentYearData?.target || 51000;
 
-  
+
   const status = getComplianceStatus(actual, target);
   const gapValue = Math.abs(target - actual).toFixed(2);
 
@@ -53,9 +92,8 @@ const Dashboard = ({ data, recentLog, user }) => {
         </div>
 
         {/* Compliance Status Box */}
-        <div className={`bg-slate-800 border rounded-lg p-5 shadow-sm transition-colors duration-500 ${
-          status.status === 'COMPLIANT' ? 'border-emerald-500/50' : 'border-red-500/50'
-        }`}>
+        <div className={`bg-slate-800 border rounded-lg p-5 shadow-sm transition-colors duration-500 ${status.status === 'COMPLIANT' ? 'border-emerald-500/50' : 'border-red-500/50'
+          }`}>
           <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">Compliance Status</p>
           <div className="mt-2 flex items-center justify-between">
             <span className={`text-xl font-bold ${status.status === 'COMPLIANT' ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -83,13 +121,13 @@ const Dashboard = ({ data, recentLog, user }) => {
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="year" stroke="#94a3b8" tick={{fontSize: 12}} />
-                <YAxis stroke="#94a3b8" tick={{fontSize: 12}} />
+                <XAxis dataKey="year" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Area type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={3} fill="url(#colorActual)" name="Actual Emissions" />
@@ -106,9 +144,9 @@ const Dashboard = ({ data, recentLog, user }) => {
               {['electricityGrid', 'coalThermal', 'diesel'].map((fuel) => {
                 const fuelValue = recentLog.inputs?.[fuel] || 0;
                 const fuelConfig = {
-                  electricityGrid: { label: 'Grid Electricity', unit: 'kWh', color: '#10b981' }, 
-                  coalThermal: { label: 'Thermal Coal', unit: 'kg', color: '#f59e0b' },     
-                  diesel: { label: 'Diesel', unit: 'L', color: '#ef4444' }                  
+                  electricityGrid: { label: 'Grid Electricity', unit: 'kWh', color: '#10b981' },
+                  coalThermal: { label: 'Thermal Coal', unit: 'kg', color: '#f59e0b' },
+                  diesel: { label: 'Diesel', unit: 'L', color: '#ef4444' }
                 };
                 const config = fuelConfig[fuel];
                 const factors = { electricityGrid: 0.71, coalThermal: 2.42, diesel: 2.68 };
@@ -125,8 +163,8 @@ const Dashboard = ({ data, recentLog, user }) => {
                       </span>
                     </div>
                     <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-1000" 
+                      <div
+                        className="h-2 rounded-full transition-all duration-1000"
                         style={{ width: `${percentage}%`, backgroundColor: config.color }}
                       ></div>
                     </div>
@@ -142,7 +180,7 @@ const Dashboard = ({ data, recentLog, user }) => {
             </div>
           ) : (
             <div className="h-full min-h-62.5 flex flex-col items-center justify-center text-slate-500 text-center p-4">
-               <p className="text-sm italic">No data available.</p>
+              <p className="text-sm italic">No data available.</p>
             </div>
           )}
         </div>

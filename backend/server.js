@@ -17,6 +17,11 @@ const emissionsRoutes = require("./routes/emissionsRoutes");
 const sellRoutes = require("./routes/sellRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const newsRoutes = require('./routes/newsRoutes');
+const  advisorRoutes = require("./routes/advisorRoutes");
+const buyCreditsRoutes = require("./routes/buycreditsRoutes");
+
+app.use("/api/buycredits", buyCreditsRoutes);
+app.use("/api", advisorRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/emissions", emissionsRoutes);
 app.use("/api/sell", sellRoutes);

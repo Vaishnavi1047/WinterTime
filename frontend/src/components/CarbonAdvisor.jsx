@@ -31,7 +31,7 @@ const CarbonAdvisor = ({ user, recentLog }) => {
     setMessages(prev => [...prev, { id: typingId, role: 'assistant', text: 'Thinking...', isTyping: true }]);
 
     const responseText = await generateAdvisorResponse(user, recentLog, userMsg.text);
-
+    
     setMessages(prev => prev.filter(m => m.id !== typingId).concat({
       id: (Date.now() + 1).toString(),
       role: 'assistant',
