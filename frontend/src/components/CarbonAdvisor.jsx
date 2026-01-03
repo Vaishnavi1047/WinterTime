@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { generateAdvisorResponse } from '../services/geminiService';
 import { IconRobot } from './Icons';
 
@@ -7,7 +8,7 @@ const CarbonAdvisor = ({ user, recentLog }) => {
     {
       id: '1',
       role: 'assistant',
-      text: `Namaste! I am your BEE Carbon Advisor. Based on your target of ${user.complianceTarget2025} tCO2e, how can I assist you today?`
+      text: `Namaste! I am your **BEE Carbon Advisor**. Based on your target of **${user.complianceTarget2025} tCO2e**, how can I assist you today?`
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -30,13 +31,32 @@ const CarbonAdvisor = ({ user, recentLog }) => {
     const typingId = 'typing-' + Date.now();
     setMessages(prev => [...prev, { id: typingId, role: 'assistant', text: 'Thinking...', isTyping: true }]);
 
-    const responseText = await generateAdvisorResponse(user, recentLog, userMsg.text);
-    
-    setMessages(prev => prev.filter(m => m.id !== typingId).concat({
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      text: responseText
-    }));
+    try {
+      const responseText = await generateAdvisorResponse(user, recentLog, userMsg.text);
+
+      // Split response by lines for better rendering
+      const formattedText = responseText
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      setMessages(prev =>
+        prev.filter(m => m.id !== typingId).concat({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          text: formattedText
+        })
+      );
+    } catch (err) {
+      setMessages(prev =>
+        prev.filter(m => m.id !== typingId).concat({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          text: ['❌ Error generating response, please try again.']
+        })
+      );
+    }
+
     setIsProcessing(false);
   };
 
@@ -49,12 +69,19 @@ const CarbonAdvisor = ({ user, recentLog }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((msg) => (
+          {messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${
-                msg.role === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-200 border border-slate-600'
-              }`}>
-                {msg.text}
+              <div
+                className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${msg.role === 'user'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-700 text-slate-200 border border-slate-600'
+                }`}
+                style={{ whiteSpace: 'pre-wrap' }}
+              >
+                {Array.isArray(msg.text)
+                  ? msg.text.map((line, idx) => <ReactMarkdown key={idx}>{line}</ReactMarkdown>)
+                  : <ReactMarkdown>{msg.text}</ReactMarkdown>
+                }
               </div>
             </div>
           ))}
@@ -65,7 +92,7 @@ const CarbonAdvisor = ({ user, recentLog }) => {
           <input
             type="text"
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={e => setInputText(e.target.value)}
             className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 text-slate-200 outline-none focus:border-emerald-500"
             placeholder="Ask about compliance strategies..."
             disabled={isProcessing}
