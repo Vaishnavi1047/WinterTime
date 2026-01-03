@@ -17,28 +17,28 @@ const TradingPortal = ({ user, onAddListing, onBuyListing }) => {
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-  // 1. Only run logic if the active tab is 'market'
-  if (activeTab === 'market') {
-    
-    // 2. Define an async function to "wrap" the state updates.
-    // This moves 'setLoadingMarket' into the async microtask queue,
-    // which satisfies the ESLint rule and prevents cascading renders.
-    const fetchMarketData = async () => {
-      setLoadingMarket(true); 
-      
-      try {
-        const data = await marketService.getApprovedListings();
-        setMarketListings(data);
-      } catch (err) {
-        console.error("Failed to fetch listings:", err);
-      } finally {
-        setLoadingMarket(false);
-      }
-    };
+    // 1. Only run logic if the active tab is 'market'
+    if (activeTab === 'market') {
 
-    fetchMarketData();
-  }
-}, [activeTab]);
+      // 2. Define an async function to "wrap" the state updates.
+      // This moves 'setLoadingMarket' into the async microtask queue,
+      // which satisfies the ESLint rule and prevents cascading renders.
+      const fetchMarketData = async () => {
+        setLoadingMarket(true);
+
+        try {
+          const data = await marketService.getApprovedListings();
+          setMarketListings(data);
+        } catch (err) {
+          console.error("Failed to fetch listings:", err);
+        } finally {
+          setLoadingMarket(false);
+        }
+      };
+
+      fetchMarketData();
+    }
+  }, [activeTab]);
 
   const showNotification = (msg, type) => {
     setNotification({ msg, type });
@@ -80,8 +80,8 @@ const TradingPortal = ({ user, onAddListing, onBuyListing }) => {
           <button
             onClick={() => setActiveTab('market')}
             className={`px-4 py-2 rounded text-sm font-medium ${activeTab === 'market'
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-400'
+              ? 'bg-emerald-600 text-white'
+              : 'text-slate-400'
               }`}
           >
             Marketplace
@@ -90,8 +90,8 @@ const TradingPortal = ({ user, onAddListing, onBuyListing }) => {
           <button
             onClick={() => setActiveTab('sell')}
             className={`px-4 py-2 rounded text-sm font-medium ${activeTab === 'sell'
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-400'
+              ? 'bg-emerald-600 text-white'
+              : 'text-slate-400'
               }`}
           >
             Sell Credits
@@ -102,8 +102,8 @@ const TradingPortal = ({ user, onAddListing, onBuyListing }) => {
       {/* Notification */}
       {notification && (
         <div className={`mb-4 p-3 rounded text-sm font-bold text-center ${notification.type === 'success'
-            ? 'bg-emerald-500/10 text-emerald-400'
-            : 'bg-red-500/10 text-red-400'
+          ? 'bg-emerald-500/10 text-emerald-400'
+          : 'bg-red-500/10 text-red-400'
           }`}>
           {notification.msg}
         </div>
@@ -175,17 +175,39 @@ const TradingPortal = ({ user, onAddListing, onBuyListing }) => {
 
                       {/* Buy Button */}
                       <button
-                        onClick={() => {
-                          onBuyListing && onBuyListing(listing._id);
-                          showNotification(
-                            'Purchase successful! Credits added to account.',
-                            'success'
-                          );
+                        onClick={async () => {
+                          try {
+                            //console.log("Buying listing:", listing._id);
+                            const response = await fetch(`http://localhost:5000/api/buycredits/buy/${listing._id}`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ userId: user._id })
+                            });
+
+                            const data = await response.json();
+                            console.log("Buy response data:", data);
+                            if (response.ok) {
+                              showNotification(
+                                `Purchase successful! New calculated emissions: ${data.updatedEmissions} tCO2e`,
+                                "success"
+                              );
+
+                              // Optional: update state to remove the purchased listing
+                              setMarketListings(prev => prev.filter(l => l._id !== listing._id));
+                              onBuyListing && onBuyListing(listing._id);
+
+                            } else {
+                              showNotification(data.error || "Purchase failed.", "error");
+                            }
+                          } catch (err) {
+                            showNotification(err.message || "Server error.", "error");
+                          }
                         }}
                         className="mt-5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all active:scale-95"
                       >
                         Buy Now
                       </button>
+
                     </div>
                   );
                 })
