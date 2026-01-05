@@ -3,6 +3,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { getComplianceStatus } from '../services/calculationService';
 import { useEffect, useState } from 'react';
 import { authService } from '../services/authService';
+import LanguageSwitcher from './LanguageSwitcher';
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -71,6 +73,20 @@ const Dashboard = ({ data, recentLog, user }) => {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-200 tracking-wide">
+            Emissions Dashboard
+          </h2>
+          <p className="text-xs text-slate-500">
+            BEE Compliance & Carbon Performance Overview
+          </p>
+        </div>
+
+        <LanguageSwitcher />
+      </div>
+
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Current Emissions Box */}
