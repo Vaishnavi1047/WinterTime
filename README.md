@@ -1,4 +1,4 @@
-# 🇮🇳 National Carbon Trading Dashboard (India – CCTS)
+# National Carbon Trading Dashboard (India – CCTS)
 
 A full-stack MERN application designed to support India’s **Carbon Credit Trading Scheme (CCTS)** by helping industries track emissions, ensure compliance, and prepare for carbon trading aligned with **Net Zero 2070**.
 
