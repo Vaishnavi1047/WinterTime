@@ -31,7 +31,7 @@ const ApprovalsPanel = () => {
     setActionLoading(id + status);
     try {
       const token = authService.getToken();
-      await axios.patch(`http://localhost:5000/api/admin/sell-request/${id}`, { status }, {
+      await axios.patch(`${import.meta.env.VITE_API_URL}/api/admin/sell-request/${id}`, { status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPending(pending.filter(l => l._id !== id));
