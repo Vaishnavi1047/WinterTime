@@ -87,7 +87,8 @@ This platform provides a **centralized digital dashboard** for industries, offse
 
 ### AI
 - LLM-based advisory (Gemini / GPT)
-
+- Gemini Chatbot
+- Google Translator API for multilanguage support
 ---
 <img width="1278" height="740" alt="Screenshot 2025-12-24 234359" src="https://github.com/user-attachments/assets/4a8bbfbe-1c6e-451a-8a61-7ef9b63684c8" />
 
