@@ -1,7 +1,9 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require('google-auth-library');
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // --- SIGNUP LOGIC ---
 exports.signup = async (req, res) => {
   try {
@@ -102,5 +104,54 @@ exports.updateUser = async (req, res) => {
   } catch (err) {
     console.error("Update Error:", err);
     res.status(500).json({ message: "Error updating account settings." });
+  }
+};
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Verify the Google Token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name } = ticket.getPayload();
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // If user doesn't exist, create them with DEFAULT ENTRIES
+      // We generate a dummy password because the Schema requires one
+      const dummyPassword = Math.random().toString(36).slice(-10); 
+      
+      user = new User({
+        email,
+        companyName: name, // Default to Google account name
+        password: dummyPassword, 
+        role: 'OBLIGATED_ENTITY', // Default
+        sector: 'DEFAULT',        // Default
+        complianceTarget2025: 0,  // Default
+      });
+
+      await user.save();
+    }
+
+    // Generate our app's JWT
+    const appToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.status(200).json({
+      token: appToken,
+      user: userResponse
+    });
+
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    res.status(500).json({ message: "Google Authentication failed. Please try again." });
   }
 };

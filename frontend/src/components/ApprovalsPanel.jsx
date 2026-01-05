@@ -18,7 +18,7 @@ const ApprovalsPanel = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPending(res.data);
-      } catch (err) {
+      } catch {
         setError('Failed to load pending requests.');
       } finally {
         setLoading(false);

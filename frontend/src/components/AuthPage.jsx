@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IconLeaf } from './Icons';
 import { authService } from '../services/authService';
+import { GoogleLogin } from '@react-oauth/google'; // Added this
 
 const AuthPage = ({ onLogin }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -16,12 +17,33 @@ const AuthPage = ({ onLogin }) => {
     complianceTarget2025: '',
   });
 
+  // Handle Google Login
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`http://localhost:5000/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Google Auth Failed');
+
+      authService.setSession(data.token, data.user);
+      onLogin(data.user, data.token);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    // Determine which endpoint to hit based on mode
     const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/signup';
     
     try {
@@ -32,16 +54,10 @@ const AuthPage = ({ onLogin }) => {
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Authentication failed');
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
-      }
-
-      // 1. Save JWT and User data to LocalStorage via our service
       authService.setSession(data.token, data.user);
-      // 2. Lift state to App.jsx to unlock the dashboard, pass both user and token
       onLogin(data.user, data.token);
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -55,7 +71,7 @@ const AuthPage = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Decor */}
+      {/* Background Decor - UNCHANGED */}
       <div className="absolute top-[-10%] left-[-10%] w-150 h-150 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-150 h-150 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -70,7 +86,6 @@ const AuthPage = ({ onLogin }) => {
           </p>
         </div>
 
-        {/* Backend Error Messaging */}
         {error && (
           <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg text-center font-medium animate-shake">
             {error}
@@ -173,6 +188,24 @@ const AuthPage = ({ onLogin }) => {
             {loading ? "Processing..." : (isLoginMode ? "Sign In" : "Register Entity")}
           </button>
         </form>
+
+        {/* GOOGLE SECTION - Inserted below the manual button */}
+        <div className="mt-6 flex flex-col items-center gap-4">
+          <div className="flex items-center w-full gap-2">
+            <div className="h-px bg-slate-800 flex-1"></div>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Or</span>
+            <div className="h-px bg-slate-800 flex-1"></div>
+          </div>
+          <div className="w-full flex justify-center">
+            <GoogleLogin 
+              onSuccess={handleGoogleSuccess} 
+              onError={() => setError("Google Login Failed")}
+              theme="filled_black"
+              shape="pill"
+              text={isLoginMode ? "signin_with" : "signup_with"}
+            />
+          </div>
+        </div>
 
         <div className="mt-8 pt-6 border-t border-slate-800 text-center">
           <button 
