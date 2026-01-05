@@ -14,7 +14,7 @@ const ApprovalsPanel = () => {
       setError('');
       try {
         const token = authService.getToken();
-        const res = await axios.get('http://localhost:5000/api/admin/pending-sell-requests', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/pending-sell-requests`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPending(res.data);

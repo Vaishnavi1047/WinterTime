@@ -29,7 +29,7 @@ const Dashboard = ({ data, recentLog, user }) => {
         const token = authService.getToken();
         //console.log('Using token:', token);
         const res = await fetch(
-          'http://localhost:5000/api/emissions/current?year=2025',
+          `${import.meta.env.VITE_API_URL}/api/emissions/current?year=2025`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

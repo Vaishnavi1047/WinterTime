@@ -23,7 +23,7 @@ const AccountSettings = ({ user, onUpdateUser, onLogout }) => {
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/update/${user._id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/update/${user._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

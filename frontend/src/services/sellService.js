@@ -3,7 +3,7 @@ import { authService } from './authService';
 export const sellService = {
   async createListing({ credits, pricePerCredit, projectType }) {
     const token = authService.getToken();
-    const response = await fetch('http://localhost:5000/api/sell/sell', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sell/sell`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ const Calculator = ({ onCalculate }) => {
     setIsCalculating(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/emissions/log', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/emissions/log`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,6 @@
 export const generateAdvisorResponse = async (user, recentLog, userMessage) => {
   try {
-    const response = await fetch("http://localhost:5000/api/advisor", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/advisor`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
