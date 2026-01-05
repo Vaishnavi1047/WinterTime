@@ -45,9 +45,9 @@ This platform provides a **centralized digital dashboard** for industries, offse
 - Technology upgrade suggestions
 - Compliance risk insights
 
-### 🔹 Offset Project Module (Voluntary)
+### 🔹 Offset Project Trading 
 - Register afforestation & renewable projects
-- Credit estimation based on approved methodologies
+- Credit buy and sell as per the requirements of the industry 
 - Verification workflow support
 
 ### 🔹 MRV & Verification
@@ -60,6 +60,10 @@ This platform provides a **centralized digital dashboard** for industries, offse
 - Easily Accessible
 ---
 
+### 🔹 News Display 
+- Helping the industries to get in touch with the recent ongoing trends
+- Spreading Awareness
+  
 ## 👥 User Roles
 
 | Role | Description |
